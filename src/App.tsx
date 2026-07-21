@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CircleStop, Volume2 } from "lucide-react";
+import { CircleStop, Users } from "lucide-react";
 import useLocalStorageState from "use-local-storage-state";
 import { Toaster, toast } from "sonner";
 import { AudioControls } from "@/components/game/AudioControls";
@@ -9,17 +9,17 @@ import { DiceHud } from "@/components/game/DiceHud";
 import { EndGameCard } from "@/components/game/EndGameCard";
 import { GameCard } from "@/components/game/GameCard";
 import { GameScene } from "@/components/game/GameScene";
+import { PlayerSetupCard } from "@/components/game/PlayerSetupCard";
 import { ScoreHud } from "@/components/game/ScoreHud";
 import { boardTiles, positionForPlayer, routeForPlayer, startPositions } from "@/components/game/board";
-import type { CurrentQuestion, Phase, PlayerId, PlayerViewState, Question } from "@/components/game/types";
+import type { CurrentQuestion, Phase, PlayerId, PlayerProfile, PlayerViewState, Question } from "@/components/game/types";
 import questionsData from "@/data/questions";
 import { launchVictoryConfetti } from "@/lib/confetti";
 import {
+  defaultPlayerProfiles,
   initialPlayerState,
-  labels,
   musicTrackForPhase,
   otherPlayer,
-  plainLabels,
   yawBetween,
   yawForPath,
 } from "@/lib/gameState";
@@ -37,6 +37,10 @@ function App() {
   const [devRevealCorrect, setDevRevealCorrect] = useState(false);
   const [devUseFixedDice, setDevUseFixedDice] = useState(false);
   const [devDiceValue, setDevDiceValue] = useState(6);
+  const [playerSetupOpen, setPlayerSetupOpen] = useState(false);
+  const [playerProfiles, setPlayerProfiles] = useLocalStorageState<Record<PlayerId, PlayerProfile> | null>("fisica-quiz-player-profiles", {
+    defaultValue: null,
+  });
   const [phase, setPhase] = useLocalStorageState<Phase>("fisica-quiz-phase", { defaultValue: "idle" });
   const [activePlayer, setActivePlayer] = useLocalStorageState<PlayerId | null>("fisica-quiz-active-player", { defaultValue: null });
   const [winner, setWinner] = useLocalStorageState<PlayerId | null>("fisica-quiz-winner", { defaultValue: null });
@@ -59,6 +63,7 @@ function App() {
     defaultValue: null,
   });
   const [lastRoll, setLastRoll] = useLocalStorageState<number | null>("fisica-quiz-last-roll", { defaultValue: null });
+  const currentPlayerProfiles = playerProfiles ?? defaultPlayerProfiles;
   const currentMusicTrack = musicTrackForPhase(phase);
 
   const clearTimers = useCallback(() => {
@@ -131,6 +136,15 @@ function App() {
     toast(message);
   }, []);
 
+  const savePlayerProfiles = useCallback(
+    (profiles: Record<PlayerId, PlayerProfile>) => {
+      setPlayerProfiles(profiles);
+      setPlayerSetupOpen(false);
+      notify("✅ Jogadores configurados!");
+    },
+    [notify, setPlayerProfiles],
+  );
+
   const updatePlayer = useCallback((player: PlayerId, patch: Partial<PlayerViewState>) => {
     setPlayers((current) => ({
       ...current,
@@ -173,10 +187,10 @@ function App() {
     setActivePlayer(nextWinner);
     setPhase("finished");
     updatePlayer(nextWinner, { action: "Dance", expression: "neutral" });
-    notify(`🏆 O jogador ${nextWinner === "jogadorUm" ? "Um" : "Dois"} venceu!`);
+    notify(`🏆 ${currentPlayerProfiles[nextWinner].name} venceu!`);
     audio.playEffect("victory");
     launchVictoryConfetti();
-  }, [audio, notify, setActivePlayer, setCurrentQuestion, setPhase, setWinner, updatePlayer]);
+  }, [audio, currentPlayerProfiles, notify, setActivePlayer, setCurrentQuestion, setPhase, setWinner, updatePlayer]);
 
   const beginTurn = useCallback(
     (player: PlayerId, questionPool: Question[], scoreState: Record<PlayerId, number>) => {
@@ -407,7 +421,7 @@ function App() {
         setWinner(player);
         setPhase("finished");
         updatePlayer(player, { action: "Dance", expression: "neutral" });
-        notify(`🏆 O jogador ${player === "jogadorUm" ? "Um" : "Dois"} venceu!`);
+        notify(`🏆 ${currentPlayerProfiles[player].name} venceu!`);
         audio.playEffect("victory");
         launchVictoryConfetti();
         return;
@@ -514,7 +528,7 @@ function App() {
 
       goToNextTurn(player, scores);
     },
-    [activePlayer, audio, goToNextTurn, notify, phase, players, schedule, scores, setPhase, setScores, setWinner, updatePlayer],
+    [activePlayer, audio, currentPlayerProfiles, goToNextTurn, notify, phase, players, schedule, scores, setPhase, setScores, setWinner, updatePlayer],
   );
 
   const questionActions = useMemo(
@@ -533,7 +547,9 @@ function App() {
   );
   const notificationPosition = activePlayer === "jogadorDois" ? "bottom-right" : "bottom-left";
   const hasRunningGame = phase !== "idle" && phase !== "finished" && phase !== "draw";
+  const canConfigurePlayers = Boolean(playerProfiles) && !hasRunningGame;
   const showDevTools = typeof window !== "undefined" && window.location.hostname === "localhost";
+  const showPlayerSetup = !playerProfiles || playerSetupOpen;
 
   return (
     <main
@@ -545,76 +561,93 @@ function App() {
       <GameScene
         jogadorUm={players.jogadorUm}
         jogadorDois={players.jogadorDois}
+        playerProfiles={currentPlayerProfiles}
         activePlayer={phase === "idle" || phase === "finished" || phase === "draw" ? null : activePlayer}
         onJogadorUmArrive={() => handleArrival("jogadorUm")}
         onJogadorDoisArrive={() => handleArrival("jogadorDois")}
       />
       {phase !== "idle" && phase !== "finished" && phase !== "draw" ? (
-        <ScoreHud scores={scores} remainingQuestions={remainingQuestions.length} />
+        <ScoreHud scores={scores} remainingQuestions={remainingQuestions.length} playerProfiles={currentPlayerProfiles} />
       ) : null}
       <DiceHud value={lastRoll} visible={phase === "feedback" || phase === "moving"} />
-      {hasRunningGame ? (
-        <Button
-          className="fixed bottom-4 right-[5.25rem] z-10 flex h-14 w-14 shadow-xl"
-          size="icon"
-          variant="secondary"
-          title="Parar partida"
-          onClick={stopGame}
-        >
-          <CircleStop className="h-7 w-7" aria-hidden="true" />
-        </Button>
-      ) : null}
-      {showDevTools ? (
-        <DevToolsPanel
-          open={devToolsOpen}
-          revealCorrect={devRevealCorrect}
-          useFixedDice={devUseFixedDice}
-          diceValue={devDiceValue}
-          onOpenChange={setDevToolsOpen}
-          onRevealCorrectChange={setDevRevealCorrect}
-          onUseFixedDiceChange={setDevUseFixedDice}
-          onDiceValueChange={setDevDiceValue}
-        />
-      ) : null}
-      <AudioControls
-        settings={audio.settings}
-        setSettings={audio.setSettings}
-        onEnableAudio={() => {
-          void audio.startMusic(currentMusicTrack);
-        }}
-      />
-      {audio.musicBlocked && audio.settings.musicEnabled && !audio.settings.muted ? (
-        <Button
-          className="fixed bottom-4 left-4 z-20 gap-2 rounded-full shadow-xl"
-          variant="secondary"
-          onClick={() => {
+      <div className="fixed bottom-4 right-4 z-10 flex items-end gap-3">
+        {hasRunningGame ? (
+          <Button
+            className="flex h-14 w-14 shadow-xl"
+            size="icon"
+            variant="secondary"
+            title="Parar partida"
+            onClick={stopGame}
+          >
+            <CircleStop className="h-7 w-7" aria-hidden="true" />
+          </Button>
+        ) : null}
+        {canConfigurePlayers ? (
+          <Button
+            className="flex h-14 w-14 shadow-xl"
+            size="icon"
+            variant="secondary"
+            title="Configurar jogadores"
+            onClick={() => setPlayerSetupOpen((current) => !current)}
+          >
+            <Users className="h-7 w-7" aria-hidden="true" />
+          </Button>
+        ) : null}
+        {showDevTools ? (
+          <DevToolsPanel
+            open={devToolsOpen}
+            revealCorrect={devRevealCorrect}
+            useFixedDice={devUseFixedDice}
+            diceValue={devDiceValue}
+            onOpenChange={setDevToolsOpen}
+            onRevealCorrectChange={setDevRevealCorrect}
+            onUseFixedDiceChange={setDevUseFixedDice}
+            onDiceValueChange={setDevDiceValue}
+          />
+        ) : null}
+        <AudioControls
+          settings={audio.settings}
+          setSettings={audio.setSettings}
+          onEnableAudio={() => {
             void audio.startMusic(currentMusicTrack);
           }}
-        >
-          <Volume2 className="h-4 w-4" aria-hidden="true" />
-          Ativar música
-        </Button>
+        />
+      </div>
+      {showPlayerSetup ? (
+        <PlayerSetupCard
+          defaultProfiles={defaultPlayerProfiles}
+          initialProfiles={currentPlayerProfiles}
+          onClose={playerProfiles ? () => setPlayerSetupOpen(false) : undefined}
+          onSave={savePlayerProfiles}
+        />
       ) : null}
-      {phase === "idle" ? (
+      {phase === "idle" && playerProfiles ? (
         <GameCard
           title="Fim de jogo!"
           subtitle="Deseja iniciar uma nova rodada?"
           actions={[{ label: "Iniciar", ariaLabel: "Iniciar jogo", prominentIcon: "play", onClick: startGame }]}
           showRobotIcon
+          playerColor={currentPlayerProfiles.jogadorUm.color}
         />
       ) : null}
       {(phase === "question" || phase === "feedback") && currentQuestion && activePlayer ? (
         <GameCard
           position={activePlayer === "jogadorUm" ? "left" : "right"}
-          title={labels[activePlayer]}
+          title={currentPlayerProfiles[activePlayer].name}
           subtitle={currentQuestion.question.pergunta}
           actions={questionActions}
           player={activePlayer}
+          playerColor={currentPlayerProfiles[activePlayer].color}
         />
       ) : null}
-      {phase === "draw" ? <GameCard title="🤝 Empate!" showRobotIcon /> : null}
+      {phase === "draw" ? <GameCard title="🤝 Empate!" showRobotIcon playerColor={currentPlayerProfiles.jogadorUm.color} /> : null}
       {phase === "finished" && winner ? (
-        <EndGameCard winnerName={plainLabels[winner]} scores={scores} onRestart={startGame} />
+        <EndGameCard
+          winnerName={currentPlayerProfiles[winner].name}
+          scores={scores}
+          playerProfiles={currentPlayerProfiles}
+          onRestart={startGame}
+        />
       ) : null}
       <Toaster richColors position={notificationPosition} />
     </main>

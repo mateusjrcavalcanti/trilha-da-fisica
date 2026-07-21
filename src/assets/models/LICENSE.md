@@ -2,7 +2,7 @@
 
 ## `RobotExpressive.glb`
 
-- Uso no projeto: modelo 3D instanciado para o Jogador Um e o Jogador Dois.
+- Uso no projeto: modelo 3D instanciado para o Primeiro Jogador e o Segundo Jogador.
 - Origem: `RobotExpressive.glb`, exemplos oficiais do three.js.
 - Fonte: https://threejs.org/examples/models/gltf/RobotExpressive/
 - Autor do modelo: Tomas Laulhe.

@@ -6,6 +6,7 @@ export type MusicTrack = "menu" | "game";
 type AudioSettings = {
   muted: boolean;
   musicEnabled: boolean;
+  sfxEnabled: boolean;
   musicVolume: number;
   sfxVolume: number;
 };
@@ -13,6 +14,7 @@ type AudioSettings = {
 const defaultSettings: AudioSettings = {
   muted: false,
   musicEnabled: true,
+  sfxEnabled: true,
   musicVolume: 0.1,
   sfxVolume: 1,
 };
@@ -48,7 +50,7 @@ export function useGameAudio() {
       const master = context.createGain();
       const sfxGain = context.createGain();
 
-      sfxGain.gain.value = settings.muted ? 0 : settings.sfxVolume;
+      sfxGain.gain.value = settings.muted || !settings.sfxEnabled ? 0 : settings.sfxVolume;
 
       sfxGain.connect(master);
       master.connect(context.destination);
@@ -62,7 +64,7 @@ export function useGameAudio() {
     }
 
     return contextRef.current;
-  }, [settings.muted, settings.sfxVolume]);
+  }, [settings.muted, settings.sfxEnabled, settings.sfxVolume]);
 
   const playTone = useCallback(
     async ({
@@ -78,7 +80,7 @@ export function useGameAudio() {
       type?: OscillatorType;
       volume?: number;
     }) => {
-      if (settings.muted) return;
+      if (settings.muted || !settings.sfxEnabled) return;
       const context = await ensureContext();
       const target = sfxGainRef.current;
       if (!target) return;
@@ -98,7 +100,7 @@ export function useGameAudio() {
       oscillator.start(now);
       oscillator.stop(now + duration + 0.02);
     },
-    [ensureContext, settings.muted],
+    [ensureContext, settings.muted, settings.sfxEnabled],
   );
 
   const applyMusicSettings = useCallback(
@@ -155,16 +157,16 @@ export function useGameAudio() {
 
   const playEffect = useCallback(
     (effect: EffectName, amount = 1) => {
-      if (settings.muted) return;
+      if (settings.muted || !settings.sfxEnabled) return;
       playSoundEffect(effect, amount, (options) => void playTone(options));
     },
-    [playTone, settings.muted],
+    [playTone, settings.muted, settings.sfxEnabled],
   );
 
   useEffect(() => {
     window.localStorage.setItem("fisica-quiz-audio", JSON.stringify(settings));
     if (sfxGainRef.current) {
-      sfxGainRef.current.gain.value = settings.muted ? 0 : settings.sfxVolume;
+      sfxGainRef.current.gain.value = settings.muted || !settings.sfxEnabled ? 0 : settings.sfxVolume;
     }
     Object.values(musicRefs.current).forEach((audio) => {
       if (audio) applyMusicSettings(audio);

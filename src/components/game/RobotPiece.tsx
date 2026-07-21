@@ -1,7 +1,7 @@
-import { useAnimations, useGLTF } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { Billboard, Text, useAnimations, useGLTF } from "@react-three/drei";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import { Group, MathUtils, Mesh, Vector3 } from "three";
+import { Color, Group, MathUtils, Material, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import type { Vector3Tuple } from "./board";
 import type { RobotAction, RobotExpression } from "./types";
@@ -11,6 +11,7 @@ type RobotPieceProps = {
   targetPosition: Vector3Tuple;
   path: Vector3Tuple[];
   accentColor: string;
+  nameLabel?: string;
   action: RobotAction;
   expression: RobotExpression;
   facingYaw: number;
@@ -29,11 +30,30 @@ function stepToward(current: number, target: number, speed: number) {
   return current + Math.sign(distance) * speed;
 }
 
+function tintRobotMaterial(material: Material, accentColor: string) {
+  const clonedMaterial = material.clone();
+  if (!(clonedMaterial instanceof MeshStandardMaterial)) return clonedMaterial;
+
+  const accent = new Color(accentColor);
+
+  if (clonedMaterial.name === "Main") {
+    clonedMaterial.color.copy(accent);
+  }
+
+  if (clonedMaterial.name === "Grey") {
+    clonedMaterial.color.copy(accent).lerp(new Color("#f8fafc"), 0.5);
+  }
+
+  clonedMaterial.needsUpdate = true;
+  return clonedMaterial;
+}
+
 export function RobotPiece({
   modelPath,
   targetPosition,
   path,
   accentColor,
+  nameLabel,
   action,
   expression,
   facingYaw = 0,
@@ -42,6 +62,8 @@ export function RobotPiece({
   onArrive,
 }: RobotPieceProps) {
   const group = useRef<Group>(null);
+  const label = useRef<Group>(null);
+  const { camera } = useThree();
   const mountedPosition = useRef<Vector3Tuple>(targetPosition);
   const hasArrived = useRef(false);
   const waypointIndex = useRef(0);
@@ -72,6 +94,16 @@ export function RobotPiece({
   useEffect(() => {
     latestOnArrive.current = onArrive;
   }, [onArrive]);
+
+  useEffect(() => {
+    clonedScene.traverse((object) => {
+      if (!(object instanceof Mesh)) return;
+
+      object.material = Array.isArray(object.material)
+        ? object.material.map((material) => tintRobotMaterial(material, accentColor))
+        : tintRobotMaterial(object.material, accentColor);
+    });
+  }, [accentColor, clonedScene]);
 
   useEffect(() => {
     if (!group.current) return;
@@ -120,6 +152,11 @@ export function RobotPiece({
   }, [clonedScene, expression]);
 
   useFrame(() => {
+    if (label.current && "zoom" in camera && typeof camera.zoom === "number") {
+      const labelScale = MathUtils.clamp(16 / camera.zoom, 0.58, 1.25);
+      label.current.scale.setScalar(labelScale);
+    }
+
     const robot = group.current;
     if (!robot || !MOVEMENT_ACTIONS.has(action)) return;
 
@@ -168,6 +205,26 @@ export function RobotPiece({
         <meshStandardMaterial color={accentColor} roughness={0.35} />
       </mesh>
       <primitive object={clonedScene} />
+      {nameLabel ? (
+        <Billboard ref={label} position={[0, 4.85, 0]}>
+          <mesh position={[0, 0, -0.01]}>
+            <planeGeometry args={[Math.max(3.1, nameLabel.length * 0.28), 0.82]} />
+            <meshBasicMaterial color="#fffaf0" transparent opacity={0.86} />
+          </mesh>
+          <Text
+            color={accentColor}
+            fontSize={0.48}
+            fontWeight={700}
+            anchorX="center"
+            anchorY="middle"
+            maxWidth={5}
+            outlineColor="#1f2937"
+            outlineWidth={0.06}
+          >
+            {nameLabel}
+          </Text>
+        </Billboard>
+      ) : null}
     </group>
   );
 }

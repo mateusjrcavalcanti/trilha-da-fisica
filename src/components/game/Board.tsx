@@ -1,5 +1,10 @@
 import { Text } from "@react-three/drei";
 import { boardTiles, positionForPlayer, type BoardTile, type PlayerLane } from "./board";
+import type { PlayerId } from "./types";
+
+type BoardProps = {
+  playerColors: Record<PlayerId, string>;
+};
 
 function tileColor(tile: BoardTile) {
   if (tile.kind === "danger") return "#d8443a";
@@ -7,29 +12,29 @@ function tileColor(tile: BoardTile) {
   return "#2b3032";
 }
 
-function laneColor(player: PlayerLane) {
-  return player === "jogadorUm" ? "#0f9f95" : "#e4564f";
+function laneColor(player: PlayerLane, playerColors: Record<PlayerId, string>) {
+  return playerColors[player];
 }
 
-function LaneStrip({ tile, player }: { tile: BoardTile; player: PlayerLane }) {
+function LaneStrip({ tile, player, playerColors }: { tile: BoardTile; player: PlayerLane; playerColors: Record<PlayerId, string> }) {
   const [x, y, z] = positionForPlayer(player, tile.index);
   const isVertical = tile.direction === "frente" || tile.direction === "tras";
 
   return (
     <mesh position={[x, y - 0.03, z]}>
       <boxGeometry args={isVertical ? [0.34, 0.035, 3.22] : [3.22, 0.035, 0.34]} />
-      <meshStandardMaterial color={laneColor(player)} roughness={0.48} />
+      <meshStandardMaterial color={laneColor(player, playerColors)} roughness={0.48} />
     </mesh>
   );
 }
 
-function StopMarker({ tile, player }: { tile: BoardTile; player: PlayerLane }) {
+function StopMarker({ tile, player, playerColors }: { tile: BoardTile; player: PlayerLane; playerColors: Record<PlayerId, string> }) {
   const [x, y, z] = positionForPlayer(player, tile.index);
 
   return (
     <mesh position={[x, y + 0.01, z]} rotation={[Math.PI / 2, 0, 0]}>
       <cylinderGeometry args={[0.54, 0.54, 0.04, 32]} />
-      <meshStandardMaterial color={laneColor(player)} roughness={0.42} />
+      <meshStandardMaterial color={laneColor(player, playerColors)} roughness={0.42} />
     </mesh>
   );
 }
@@ -52,7 +57,7 @@ function TileLabel({ tile }: { tile: BoardTile }) {
   );
 }
 
-export function Board() {
+export function Board({ playerColors }: BoardProps) {
   return (
     <group>
       {boardTiles.map((tile) => (
@@ -65,10 +70,10 @@ export function Board() {
             <boxGeometry args={[4.28, 0.2, 4.28]} />
             <meshStandardMaterial color={tileColor(tile)} roughness={0.58} />
           </mesh>
-          <LaneStrip tile={tile} player="jogadorUm" />
-          <LaneStrip tile={tile} player="jogadorDois" />
-          <StopMarker tile={tile} player="jogadorUm" />
-          <StopMarker tile={tile} player="jogadorDois" />
+          <LaneStrip tile={tile} player="jogadorUm" playerColors={playerColors} />
+          <LaneStrip tile={tile} player="jogadorDois" playerColors={playerColors} />
+          <StopMarker tile={tile} player="jogadorUm" playerColors={playerColors} />
+          <StopMarker tile={tile} player="jogadorDois" playerColors={playerColors} />
           <TileLabel tile={tile} />
         </group>
       ))}

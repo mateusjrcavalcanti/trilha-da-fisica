@@ -1,11 +1,12 @@
-import { Music, SlidersHorizontal, Volume2, VolumeX } from "lucide-react";
+import { Music, Volume1, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 type AudioSettings = {
   muted: boolean;
   musicEnabled: boolean;
+  sfxEnabled: boolean;
   musicVolume: number;
   sfxVolume: number;
 };
@@ -18,78 +19,120 @@ type AudioControlsProps = {
 
 export function AudioControls({ settings, setSettings, onEnableAudio }: AudioControlsProps) {
   const [open, setOpen] = useState(false);
+  const [audioActivated, setAudioActivated] = useState(false);
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const audioEnabled = !settings.muted && (settings.musicEnabled || settings.sfxEnabled);
 
-  const toggleMute = () => {
-    setSettings((current) => ({ ...current, muted: !current.muted }));
+  useEffect(() => {
+    if (!open) return;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node) || controlsRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [open]);
+
+  const toggleMusic = () => {
+    setSettings((current) => ({ ...current, muted: false, musicEnabled: !current.musicEnabled }));
     onEnableAudio();
   };
 
-  const toggleMusic = () => {
-    setSettings((current) => ({ ...current, musicEnabled: !current.musicEnabled }));
+  const toggleSfx = () => {
+    setSettings((current) => ({ ...current, muted: false, sfxEnabled: !current.sfxEnabled }));
     onEnableAudio();
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-10">
+    <div className="relative" ref={controlsRef}>
       {open ? (
-        <div className="game-window mb-2 w-[min(calc(100vw-2rem),18rem)] p-3 text-sm">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 font-semibold">
-              <Music className="h-4 w-4 text-primary" aria-hidden="true" />
-              Áudio
-            </div>
-            <div className="flex gap-1">
-              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={toggleMusic} title="Ligar/desligar música">
-                <Music className={settings.musicEnabled ? "h-4 w-4 text-primary" : "h-4 w-4 text-muted-foreground"} />
-              </Button>
-              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={toggleMute} title="Silenciar áudio">
-                {settings.muted ? <VolumeX className="h-4 w-4 text-red-600" /> : <Volume2 className="h-4 w-4 text-primary" />}
-              </Button>
-            </div>
+        <div className="game-window absolute bottom-[4.5rem] right-0 w-[min(calc(100vw-2rem),18rem)] p-3 text-sm">
+          <div className="flex items-center gap-2 font-semibold">
+            <Volume2 className="h-4 w-4 text-primary" aria-hidden="true" />
+            Áudio
           </div>
 
-          <label className="mt-3 block text-xs font-medium text-muted-foreground">
-            Música
-            <input
-              className="audio-slider mt-1"
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={settings.musicVolume}
-              onPointerDown={onEnableAudio}
-              onChange={(event) =>
-                setSettings((current) => ({ ...current, musicVolume: Number(event.target.value), musicEnabled: true }))
-              }
-            />
-          </label>
+          <div className="mt-3 grid gap-3">
+            <div className="flex items-center gap-2 font-semibold">
+              <Button size="icon" variant="ghost" className="h-12 w-12 shrink-0" onClick={toggleMusic} title="Ligar/desligar música">
+                {settings.musicEnabled && !settings.muted ? (
+                  <Music className="h-7 w-7 text-primary" aria-hidden="true" />
+                ) : (
+                  <VolumeX className="h-7 w-7 text-red-600" aria-hidden="true" />
+                )}
+              </Button>
+              <label className="min-w-0 flex-1 text-xs font-medium text-muted-foreground">
+                Música
+                <input
+                  className="audio-slider mt-1"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={settings.musicVolume}
+                  onPointerDown={onEnableAudio}
+                  onChange={(event) =>
+                    setSettings((current) => ({ ...current, muted: false, musicVolume: Number(event.target.value), musicEnabled: true }))
+                  }
+                />
+              </label>
+            </div>
 
-          <label className="mt-2 block text-xs font-medium text-muted-foreground">
-            Efeitos
-            <input
-              className="audio-slider mt-1"
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={settings.sfxVolume}
-              onPointerDown={onEnableAudio}
-              onChange={(event) => setSettings((current) => ({ ...current, sfxVolume: Number(event.target.value) }))}
-            />
-          </label>
+            <div className="flex items-center gap-2">
+              <Button size="icon" variant="ghost" className="h-12 w-12 shrink-0" onClick={toggleSfx} title="Ligar/desligar efeitos">
+                {settings.sfxEnabled && !settings.muted ? (
+                  <Volume1 className="h-7 w-7 text-primary" aria-hidden="true" />
+                ) : (
+                  <VolumeX className="h-7 w-7 text-red-600" aria-hidden="true" />
+                )}
+              </Button>
+              <label className="min-w-0 flex-1 text-xs font-medium text-muted-foreground">
+                Efeitos
+                <input
+                  className="audio-slider mt-1"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={settings.sfxVolume}
+                  onPointerDown={onEnableAudio}
+                  onChange={(event) =>
+                    setSettings((current) => ({ ...current, muted: false, sfxEnabled: true, sfxVolume: Number(event.target.value) }))
+                  }
+                />
+              </label>
+            </div>
+          </div>
         </div>
       ) : null}
       <Button
         className="ml-auto flex h-14 w-14 shadow-xl"
         size="icon"
-        variant="secondary"
-        title="Abrir controles de áudio"
+        variant={audioEnabled ? "secondary" : "destructive"}
+        title={audioEnabled ? "Abrir controles de áudio" : "Ativar áudio"}
         onClick={() => {
+          const shouldUnlockAudio = !audioActivated;
+          setAudioActivated(true);
           setOpen((current) => !current);
+          if (shouldUnlockAudio) {
+            setSettings((current) => ({
+              ...current,
+              muted: false,
+              musicEnabled: true,
+              sfxEnabled: true,
+            }));
+          }
           onEnableAudio();
         }}
       >
-        <SlidersHorizontal className="h-7 w-7" aria-hidden="true" />
+        {audioEnabled ? (
+          <Volume2 className="h-7 w-7" aria-hidden="true" />
+        ) : (
+          <VolumeX className="h-7 w-7" aria-hidden="true" />
+        )}
       </Button>
     </div>
   );

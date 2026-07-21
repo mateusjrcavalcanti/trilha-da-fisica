@@ -1,4 +1,5 @@
 import { FlaskConical } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 type DevToolsPanelProps = {
@@ -22,10 +23,25 @@ export function DevToolsPanel({
   onUseFixedDiceChange,
   onDiceValueChange,
 }: DevToolsPanelProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node) || panelRef.current?.contains(target)) return;
+      onOpenChange(false);
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [onOpenChange, open]);
+
   return (
-    <div className="fixed bottom-4 right-[9.75rem] z-10">
+    <div className="relative" ref={panelRef}>
       {open ? (
-        <div className="game-window mb-2 w-[min(calc(100vw-2rem),19rem)] p-3 text-sm">
+        <div className="game-window absolute bottom-[4.5rem] right-0 w-[min(calc(100vw-2rem),19rem)] p-3 text-sm">
           <div className="flex items-center gap-2 font-semibold">
             <FlaskConical className="h-4 w-4 text-primary" aria-hidden="true" />
             Desenvolvimento

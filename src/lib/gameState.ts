@@ -1,6 +1,6 @@
 import type { MusicTrack } from "@/lib/useGameAudio";
 import { startPositions } from "@/components/game/board";
-import type { Phase, PlayerId, PlayerViewState } from "@/components/game/types";
+import type { Phase, PlayerId, PlayerProfile, PlayerViewState } from "@/components/game/types";
 
 export const initialPlayerState: Record<PlayerId, PlayerViewState> = {
   jogadorUm: {
@@ -21,14 +21,15 @@ export const initialPlayerState: Record<PlayerId, PlayerViewState> = {
   },
 };
 
-export const labels: Record<PlayerId, string> = {
-  jogadorUm: "🧪 Jogador Um",
-  jogadorDois: "⚡ Jogador Dois",
-};
-
-export const plainLabels: Record<PlayerId, string> = {
-  jogadorUm: "Jogador Um",
-  jogadorDois: "Jogador Dois",
+export const defaultPlayerProfiles: Record<PlayerId, PlayerProfile> = {
+  jogadorUm: {
+    name: "Primeiro Jogador",
+    color: "#0f9f95",
+  },
+  jogadorDois: {
+    name: "Segundo Jogador",
+    color: "#e4564f",
+  },
 };
 
 export const otherPlayer: Record<PlayerId, PlayerId> = {

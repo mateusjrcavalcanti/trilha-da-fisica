@@ -10,7 +10,7 @@ import robotModel from "@/assets/models/RobotExpressive.glb";
 import { Board } from "./Board";
 import { LabEnvironment } from "./LabEnvironment";
 import { RobotPiece } from "./RobotPiece";
-import type { PlayerId, PlayerViewState } from "./types";
+import type { PlayerId, PlayerProfile, PlayerViewState } from "./types";
 import type { Vector3Tuple } from "./board";
 
 function facingVectorFromYaw(yaw: number) {
@@ -42,6 +42,7 @@ function shouldUseCinematicCamera(activePlayer: PlayerId | null, jogadorUm: Play
 type GameSceneProps = {
   jogadorUm: PlayerViewState;
   jogadorDois: PlayerViewState;
+  playerProfiles: Record<PlayerId, PlayerProfile>;
   activePlayer: PlayerId | null;
   onJogadorUmArrive: () => void;
   onJogadorDoisArrive: () => void;
@@ -157,6 +158,7 @@ function CameraRig({
 export function GameScene({
   jogadorUm,
   jogadorDois,
+  playerProfiles,
   activePlayer,
   onJogadorUmArrive,
   onJogadorDoisArrive,
@@ -192,7 +194,8 @@ export function GameScene({
           modelPath={robotModel}
           targetPosition={jogadorUm.targetPosition}
           path={jogadorUm.path}
-          accentColor="#0f9f95"
+          accentColor={playerProfiles.jogadorUm.color}
+          nameLabel={playerProfiles.jogadorUm.name}
           action={jogadorUm.action}
           expression={jogadorUm.expression}
           facingYaw={jogadorUm.facingYaw}
@@ -204,7 +207,8 @@ export function GameScene({
           modelPath={robotModel}
           targetPosition={jogadorDois.targetPosition}
           path={jogadorDois.path}
-          accentColor="#e4564f"
+          accentColor={playerProfiles.jogadorDois.color}
+          nameLabel={playerProfiles.jogadorDois.name}
           action={jogadorDois.action}
           expression={jogadorDois.expression}
           facingYaw={jogadorDois.facingYaw}
@@ -212,7 +216,12 @@ export function GameScene({
           onPositionChange={(position) => updateTrackedPosition("jogadorDois", position)}
           onArrive={onJogadorDoisArrive}
         />
-        <Board />
+        <Board
+          playerColors={{
+            jogadorUm: playerProfiles.jogadorUm.color,
+            jogadorDois: playerProfiles.jogadorDois.color,
+          }}
+        />
         <OrbitControls
           ref={controlsRef}
           enablePan={false}

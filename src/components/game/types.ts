@@ -29,6 +29,11 @@ export type PlayerViewState = {
   resetToken: number;
 };
 
+export type PlayerProfile = {
+  name: string;
+  color: string;
+};
+
 export type Phase = "idle" | "question" | "feedback" | "moving" | "resolving" | "finished" | "draw";
 
 export type Question = {

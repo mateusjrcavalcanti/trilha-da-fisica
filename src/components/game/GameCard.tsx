@@ -19,6 +19,7 @@ type GameCardProps = {
   position?: "left" | "center" | "right";
   showRobotIcon?: boolean;
   player?: "jogadorUm" | "jogadorDois";
+  playerColor?: string;
 };
 
 const positions = {
@@ -36,9 +37,8 @@ export function GameCard({
   position = "center",
   showRobotIcon = false,
   player,
+  playerColor,
 }: GameCardProps) {
-  const ringColor = player === "jogadorDois" ? "border-[#e4564f]" : "border-[#0f9f95]";
-
   return (
     <Card
       className={cn(
@@ -48,7 +48,10 @@ export function GameCard({
     >
       <CardHeader className="items-center text-center">
         {showRobotIcon || !player ? (
-          <div className={cn("mb-1 flex h-16 w-16 items-center justify-center rounded-full border bg-card/70 shadow-sm", ringColor)}>
+          <div
+            className="mb-1 flex h-16 w-16 items-center justify-center rounded-full border bg-card/70 shadow-sm"
+            style={{ borderColor: playerColor }}
+          >
             {showRobotIcon ? (
               <img src={faviconUrl} alt="" className="h-12 w-12 object-contain" />
             ) : (
