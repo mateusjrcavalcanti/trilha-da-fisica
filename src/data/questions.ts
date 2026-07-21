@@ -7,67 +7,67 @@ const data = [
   },
   {
     pergunta:
-      "A energia pode ser definida, basicamente, como a capacidade de realizar trabalho. Verdadeiro ou falso ?",
+      "A energia pode ser definida, basicamente, como a capacidade de realizar trabalho. Verdadeiro ou falso?",
     erradas: ["Falso"],
     correta: "Verdadeiro",
   },
   {
     pergunta:
-      "A energia potencial elástica é inversamente proporcional à constante elástica da mola",
+      "A energia potencial elástica é inversamente proporcional à constante elástica da mola.",
     erradas: ["Verdadeiro"],
     correta: "Falso",
   },
   {
     pergunta:
-      "A constante elástica indica a dificuldade imposta pela mola à deformação",
+      "A constante elástica indica a dificuldade imposta pela mola à deformação.",
     erradas: ["Falso"],
     correta: "Verdadeiro",
   },
   {
     pergunta:
-      "Os principais elementos presentes na função de onda variante no tempo e espaço y(x,t) são, amplitude, número de onda e frequência angular? ",
+      "Os principais elementos presentes na função de onda variante no tempo e no espaço y(x, t) são amplitude, número de onda e frequência angular?",
     erradas: ["Falso"],
     correta: "Verdadeiro",
   },
   {
     pergunta:
-      "Os tipos de ondas são, Ondas Mecânicas, ondas do Mar e ondas Sonoras ?",
+      "Os tipos de ondas são ondas mecânicas, ondas do mar e ondas sonoras?",
     erradas: ["Verdadeiro"],
     correta: "Falso",
   },
   {
     pergunta:
-      "Os tipos de ondas são, Ondas Mecânicas, ondas do Mar e ondas Sonoras ?",
+      "Os tipos de ondas são ondas mecânicas, ondas do mar e ondas sonoras?",
     erradas: ["Falso"],
     correta: "Verdadeiro",
-  },  
+  },
   {
     pergunta:
-      "A relação de Frequência(F)(rad/s) e o Período(P)(s), e defina por F=2*pi*T",
+      "A relação entre frequência (F), em rad/s, e período (P), em segundos, é definida por F = 2 * pi * T.",
     erradas: ["Verdadeiro"],
     correta: "Falso",
   },
   {
     pergunta:
-      "Os tipos de Interferência, são interferência construtiva e interferência destrutiva ",
+      "Os tipos de interferência são interferência construtiva e interferência destrutiva.",
     erradas: ["Falso"],
     correta: "Verdadeiro",
   },
   {
     pergunta:
-      "Uma corda de violão contém cordas graves e agudas, o que faz com que sejam diferentes são a frequencias",
+      "Um violão contém cordas graves e agudas. O que faz com que sejam diferentes são as frequências.",
     erradas: ["Falso"],
     correta: "Verdadeiro",
   },
   {
     pergunta:
-      "O humano não consegui ouvir um apito de cachorro por estarem em uma frequencia abaixo da auditiva do ser Humano",
+      "O ser humano não consegue ouvir um apito de cachorro porque ele está em uma frequência fora da faixa auditiva humana.",
     erradas: ["Falso"],
     correta: "Verdadeiro",
   },
   {
     pergunta:
-      "O calor é a transferência de de energia entre dois materiais de temperturas diferentes, verdadeiro ou falso?",
+      "O calor é a transferência de energia entre dois materiais com temperaturas diferentes. Verdadeiro ou falso?",
     erradas: ["Falso"],
     correta: "Verdadeiro",
   },
@@ -79,7 +79,7 @@ const data = [
   },
   {
     pergunta:
-      "O trabalho é positivo, quando é realizado por um agente externo sobre o sistema termodinâmico, e negativo, quando é realizado pelo próprio sistema.",
+      "O trabalho é positivo quando é realizado por um agente externo sobre o sistema termodinâmico, e negativo quando é realizado pelo próprio sistema.",
     erradas: ["Verdadeiro"],
     correta: "Falso",
   },
@@ -104,24 +104,24 @@ const data = [
       "Sua velocidade diminui.",
       "Sua aceleração diminui.",
     ],
-    correta: "sua energia cinética aumenta",
+    correta: "Sua energia cinética aumenta.",
   },
   {
     pergunta:
       "Um navio cargueiro completamente carregado tem uma massa de 150 toneladas. Sabendo que esse navio percorre uma distância de 4000 km em 30 dias com velocidade constante, qual o valor da força resultante sobre o navio durante o percurso?",
-    erradas: ["1.200.000 N", "400.000 N", "3000 N", "150.000"],
+    erradas: ["1.200.000 N", "400.000 N", "3.000 N", "150.000 N"],
     correta: "0 N",
   },
   {
     pergunta:
       "Um motorista dirigia a 30 m/s quando avista um buraco na pista e pisa no freio. Os freios produziram uma desaceleração de 2,0 m/s², até que o carro para completamente. O espaço percorrido pelo veículo até o final da frenagem é de:",
-    erradas: ["150", "125 m c", "275 m", "450 m"],
+    erradas: ["150 m", "125 m", "275 m", "450 m"],
     correta: "225 m",
   },
   {
     pergunta: "Como temperatura é definida?",
     erradas: [
-      "Transferência de energia entre dois materiais de de energia diferentes",
+      "Transferência de energia entre dois materiais com energias diferentes",
     ],
     correta: "Grau de agitação das moléculas que compõem um corpo",
   },
