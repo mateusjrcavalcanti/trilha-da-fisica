@@ -126,6 +126,11 @@ function App() {
     timers.current.push(timer);
   }, []);
 
+  const notify = useCallback((message: string) => {
+    toast.dismiss();
+    toast(message);
+  }, []);
+
   const updatePlayer = useCallback((player: PlayerId, patch: Partial<PlayerViewState>) => {
     setPlayers((current) => ({
       ...current,
@@ -158,7 +163,7 @@ function App() {
     if (scoreState.jogadorUm === scoreState.jogadorDois) {
       setPhase("draw");
       setWinner(null);
-      toast("🤝 Empate!");
+      notify("🤝 Empate!");
       audio.playEffect("draw");
       return;
     }
@@ -168,15 +173,15 @@ function App() {
     setActivePlayer(nextWinner);
     setPhase("finished");
     updatePlayer(nextWinner, { action: "Dance", expression: "neutral" });
-    toast(`🏆 O jogador ${nextWinner === "jogadorUm" ? "Um" : "Dois"} venceu!`);
+    notify(`🏆 O jogador ${nextWinner === "jogadorUm" ? "Um" : "Dois"} venceu!`);
     audio.playEffect("victory");
     launchVictoryConfetti();
-  }, [audio, setActivePlayer, setCurrentQuestion, setPhase, setWinner, updatePlayer]);
+  }, [audio, notify, setActivePlayer, setCurrentQuestion, setPhase, setWinner, updatePlayer]);
 
   const beginTurn = useCallback(
     (player: PlayerId, questionPool: Question[], scoreState: Record<PlayerId, number>) => {
       if (!questionPool.length) {
-        toast("📚 As perguntas acabaram!");
+        notify("📚 As perguntas acabaram!");
         finishByScore(scoreState);
         return;
       }
@@ -207,6 +212,7 @@ function App() {
     },
     [
       finishByScore,
+      notify,
       setActivePlayer,
       setCurrentQuestion,
       setLastRoll,
@@ -240,7 +246,7 @@ function App() {
         resetToken: players.jogadorDois.resetToken + 1,
       },
     });
-    toast("🤖 Jogo iniciado!");
+    notify("🤖 Jogo iniciado!");
     void audio.startMusic("game");
     audio.playEffect("start");
     beginTurn("jogadorUm", [...questionsData], scoreState);
@@ -248,6 +254,7 @@ function App() {
     audio,
     beginTurn,
     clearTimers,
+    notify,
     players.jogadorDois.resetToken,
     players.jogadorUm.resetToken,
     setPlayers,
@@ -284,11 +291,12 @@ function App() {
         resetToken: players.jogadorDois.resetToken + 1,
       },
     });
-    toast("⏹️ Partida parada.");
+    notify("⏹️ Partida parada.");
     void audio.startMusic("menu");
   }, [
     audio,
     clearTimers,
+    notify,
     players.jogadorDois.resetToken,
     players.jogadorUm.resetToken,
     setActivePlayer,
@@ -317,7 +325,7 @@ function App() {
       setPhase("feedback");
 
       if (!answer.isCorrect) {
-        toast("❌ Resposta errada!");
+        notify("❌ Resposta errada!");
         audio.playEffect("wrong");
         updatePlayer(activePlayer, { action: "No", expression: "Sad", path: [] });
         schedule(() => {
@@ -335,7 +343,7 @@ function App() {
         [activePlayer]: nextScore,
       };
 
-      toast("✅ Resposta certa!");
+      notify("✅ Resposta certa!");
       audio.playEffect("correct");
       updatePlayer(activePlayer, { action: "Yes", expression: "neutral", path: [] });
       setLastRoll(movement);
@@ -362,6 +370,7 @@ function App() {
       devDiceValue,
       devUseFixedDice,
       goToNextTurn,
+      notify,
       phase,
       schedule,
       scores,
@@ -398,7 +407,7 @@ function App() {
         setWinner(player);
         setPhase("finished");
         updatePlayer(player, { action: "Dance", expression: "neutral" });
-        toast(`🏆 O jogador ${player === "jogadorUm" ? "Um" : "Dois"} venceu!`);
+        notify(`🏆 O jogador ${player === "jogadorUm" ? "Um" : "Dois"} venceu!`);
         audio.playEffect("victory");
         launchVictoryConfetti();
         return;
@@ -411,7 +420,7 @@ function App() {
         const returnEndDelay = returnStartDelay + returnDuration;
 
         setPhase("resolving");
-        toast("🕳️ Caiu no buraco! Volte para a largada.");
+        notify("🕳️ Caiu no buraco! Volte para a largada.");
         audio.playEffect("fall");
         updatePlayer(player, { action: "Jump", expression: "Surprised", path: [] });
         schedule(() => {
@@ -450,7 +459,7 @@ function App() {
         const opponentReturnDuration = Math.max(1600, opponentReturnPath.length * 650);
 
         setPhase("resolving");
-        toast("💥 Dormiu no ponto!");
+        notify("💥 Dormiu no ponto!");
         audio.playEffect("punch");
         updatePlayer(player, {
           action: "Punch",
@@ -505,7 +514,7 @@ function App() {
 
       goToNextTurn(player, scores);
     },
-    [activePlayer, audio, goToNextTurn, phase, players, schedule, scores, setPhase, setScores, setWinner, updatePlayer],
+    [activePlayer, audio, goToNextTurn, notify, phase, players, schedule, scores, setPhase, setScores, setWinner, updatePlayer],
   );
 
   const questionActions = useMemo(

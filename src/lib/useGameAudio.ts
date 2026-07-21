@@ -18,8 +18,8 @@ const defaultSettings: AudioSettings = {
 };
 
 const musicTracks: Record<MusicTrack, string> = {
-  menu: "/sounds/menu-loop-tiggo.ogg",
-  game: "/sounds/game-loop-tigrun.ogg",
+  menu: `${import.meta.env.BASE_URL}sounds/menu-loop-tiggo.ogg`,
+  game: `${import.meta.env.BASE_URL}sounds/game-loop-tigrun.ogg`,
 };
 
 function getStoredSettings() {

@@ -27,6 +27,8 @@ const positions = {
   right: "right-4 top-4 md:right-8",
 };
 
+const faviconUrl = `${import.meta.env.BASE_URL}favicon.png`;
+
 export function GameCard({
   title,
   subtitle,
@@ -48,7 +50,7 @@ export function GameCard({
         {showRobotIcon || !player ? (
           <div className={cn("mb-1 flex h-16 w-16 items-center justify-center rounded-full border bg-card/70 shadow-sm", ringColor)}>
             {showRobotIcon ? (
-              <img src="/favicon.png" alt="" className="h-12 w-12 object-contain" />
+              <img src={faviconUrl} alt="" className="h-12 w-12 object-contain" />
             ) : (
               <Bot className="h-9 w-9 text-primary" aria-hidden="true" />
             )}

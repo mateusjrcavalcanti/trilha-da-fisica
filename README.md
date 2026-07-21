@@ -92,6 +92,22 @@ Pré-visualize o build:
 npm run preview
 ```
 
+### Configuração de Publicação
+
+O build detecta automaticamente o endereço do GitHub Pages a partir da variável `GITHUB_REPOSITORY`, gerando caminhos como `/nome-do-repositorio/` para assets, favicon, sitemap e metadados sociais.
+
+Para usar um domínio customizado ou sobrescrever o endereço público, defina:
+
+```bash
+VITE_SITE_URL=https://seudominio.com/
+```
+
+Se a aplicação precisar ser publicada em um subdiretório específico, defina também:
+
+```bash
+VITE_BASE_PATH=/subdiretorio/
+```
+
 ## 🗂️ Estrutura
 
 ```txt

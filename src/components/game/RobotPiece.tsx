@@ -47,6 +47,8 @@ export function RobotPiece({
   const waypointIndex = useRef(0);
   const latestTargetPosition = useRef(targetPosition);
   const latestFacingYaw = useRef(facingYaw);
+  const latestOnPositionChange = useRef(onPositionChange);
+  const latestOnArrive = useRef(onArrive);
   const waypoints = useMemo(
     () => (path.length ? path : [targetPosition]).map((position) => new Vector3(...position)),
     [path, targetPosition],
@@ -64,12 +66,20 @@ export function RobotPiece({
   }, [facingYaw]);
 
   useEffect(() => {
+    latestOnPositionChange.current = onPositionChange;
+  }, [onPositionChange]);
+
+  useEffect(() => {
+    latestOnArrive.current = onArrive;
+  }, [onArrive]);
+
+  useEffect(() => {
     if (!group.current) return;
     group.current.position.set(...latestTargetPosition.current);
     group.current.rotation.y = latestFacingYaw.current;
-    onPositionChange?.(latestTargetPosition.current);
+    latestOnPositionChange.current?.(latestTargetPosition.current);
     hasArrived.current = false;
-  }, [onPositionChange, resetToken]);
+  }, [resetToken]);
 
   useEffect(() => {
     if (!group.current || MOVEMENT_ACTIONS.has(action)) return;
@@ -125,20 +135,20 @@ export function RobotPiece({
     if (!arrivedZ) {
       robot.position.z = stepToward(robot.position.z, destination.z, speed);
       robot.rotation.y = dz > 0 ? 0 : Math.PI;
-      onPositionChange?.([robot.position.x, robot.position.y, robot.position.z]);
+      latestOnPositionChange.current?.([robot.position.x, robot.position.y, robot.position.z]);
       return;
     }
 
     if (!arrivedX) {
       robot.position.x = stepToward(robot.position.x, destination.x, speed);
       robot.rotation.y = dx > 0 ? Math.PI / 2 : -Math.PI / 2;
-      onPositionChange?.([robot.position.x, robot.position.y, robot.position.z]);
+      latestOnPositionChange.current?.([robot.position.x, robot.position.y, robot.position.z]);
       return;
     }
 
     robot.position.x = MathUtils.lerp(robot.position.x, destination.x, 1);
     robot.position.z = MathUtils.lerp(robot.position.z, destination.z, 1);
-    onPositionChange?.([robot.position.x, robot.position.y, robot.position.z]);
+    latestOnPositionChange.current?.([robot.position.x, robot.position.y, robot.position.z]);
 
     if (waypointIndex.current < waypoints.length - 1) {
       waypointIndex.current += 1;
@@ -147,7 +157,7 @@ export function RobotPiece({
 
     if (!hasArrived.current) {
       hasArrived.current = true;
-      onArrive?.();
+      latestOnArrive.current?.();
     }
   });
 
